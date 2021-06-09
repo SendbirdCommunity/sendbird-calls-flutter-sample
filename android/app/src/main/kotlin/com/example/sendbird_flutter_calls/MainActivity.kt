@@ -1,5 +1,6 @@
 package com.example.sendbird_flutter_calls
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import androidx.annotation.NonNull
 import com.sendbird.calls.*
@@ -8,6 +9,9 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import com.sendbird.calls.handler.AuthenticateHandler
+import com.sendbird.calls.handler.DirectCallListener
+import com.sendbird.calls.handler.SendBirdCallListener
+import java.util.*
 
 class MainActivity: FlutterActivity() {
     private val METHOD_CHANNEL_NAME = "com.sendbird.calls/method"
@@ -52,7 +56,31 @@ class MainActivity: FlutterActivity() {
 
     private fun initSendbird(context: Context, appId: String , userId: String, callback: (Boolean)->Unit){
         // Initialize SendBirdCall instance to use APIs in your app.
-        SendBirdCall.init(context, appId)
+        if(SendBirdCall.init(context, appId)){
+            // Initialization successful
+            SendBirdCall.addListener(UUID.randomUUID().toString(), object: SendBirdCallListener() {
+                override fun onRinging(call: DirectCall) {
+                    val ongoingCallCount = SendBirdCall.ongoingCallCount
+                    if (ongoingCallCount >= 2) {
+                        call.end()
+                        return
+                    }
+
+                    call.setListener(object : DirectCallListener() {
+                        override fun onConnected(call: DirectCall) {
+
+                        }
+
+                        override fun onEnded(call: DirectCall) {
+                            val ongoingCallCount = SendBirdCall.ongoingCallCount
+                            if (ongoingCallCount == 0) {
+//                                CallService.stopService(context)
+                            }
+                        }
+                    })
+                }
+            })
+        }
 
         // The USER_ID below should be unique to your Sendbird application.
         var params = AuthenticateParams(userId)
