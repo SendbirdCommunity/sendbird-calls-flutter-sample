@@ -6,11 +6,26 @@ import SendBirdCalls
 @objc class AppDelegate: FlutterAppDelegate {
     
     
-    func initSendbird(args: Any, completion: @escaping (Bool) -> ()) {
-        let APP_ID = "885C2616-DBF8-4BDC-9178-4A1A662614E3"
+    func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
+        
+        guard let args = call.arguments as? Dictionary<String, Any> else {
+            return
+        }
+        
+        guard let APP_ID = args["app_id"] as? String else {
+            completion(false)
+            return
+        }
+        
+        guard let userId = args["user_id"] as? String else {
+            completion(false)
+            return
+        }
+        
+//        let APP_ID = "885C2616-DBF8-4BDC-9178-4A1A662614E3"
         SendBirdCall.configure(appId: APP_ID)
         SBCLogger.setLoggerLevel(.info)
-        let params = AuthenticateParams(userId: "UserA", accessToken: "TOKEN")
+        let params = AuthenticateParams(userId: userId, accessToken: "TOKEN")
         
         SendBirdCall.authenticate(with: params) { (user, error) in
             
@@ -35,16 +50,13 @@ import SendBirdCalls
         let callsChannel = FlutterMethodChannel(name: "com.sendbird.calls/method",
                                                 binaryMessenger: controller.binaryMessenger)
         callsChannel.setMethodCallHandler({
-            //May Need @escaping for async.
+
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
-            // Note: this method is invoked on the UI thread.
-            // Handle battery messages.
+
             guard call.method == "init" else { return }
-            if let args = call.arguments {
-                print(args)
-                self.initSendbird(args: args) { (connected) -> () in
+        
+            self.initSendbird(call: call) { (connected) -> () in
                     result(connected)
-                }
             }
         })
         
