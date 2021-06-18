@@ -3,7 +3,11 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  final String appId;
+  final String userId;
+
+  const HomeScreen({Key? key, required this.appId, required this.userId})
+      : super(key: key);
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -23,9 +27,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final calleeController = TextEditingController();
+
     return Scaffold(
-      appBar: AppBar(title: Text('Sendbird Calls')),
-      body: Text('$statusString'),
+      appBar: AppBar(title: Center(child: Text('Sendbird Calls'))),
+      body: Column(children: [
+        Text('$statusString'),
+        TextField(
+          controller: calleeController,
+          decoration: InputDecoration(labelText: "Callee User Id"),
+        ),
+        callButton(calleeController),
+      ]),
     );
   }
 
@@ -34,8 +47,31 @@ class _HomeScreenState extends State<HomeScreen> {
       final bool result = await platform.invokeMethod(
         "init",
         {
-          "app_id": "D56438AE-B4DB-4DC9-B440-E032D7B35CEB",
-          "user_id": "jason",
+          "app_id": widget.appId,
+          "user_id": widget.userId,
+        },
+      );
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Widget callButton(TextEditingController controller) {
+    return IconButton(
+      icon: const Icon(Icons.call),
+      onPressed: () {
+        startCall(controller.text);
+      },
+    );
+  }
+
+  Future<bool> startCall(String calleeId) async {
+    try {
+      final bool result = await platform.invokeMethod(
+        "voice_call",
+        {
+          "callee_id": calleeId,
         },
       );
       return result;
