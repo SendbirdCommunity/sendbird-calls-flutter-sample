@@ -59,7 +59,7 @@ class MainActivity: FlutterActivity() {
                         }
                     }
                 }
-                "voice_call" -> {
+                "direct_call" -> {
                     val calleeId: String? = call.argument("callee_id")
                     if (calleeId == null) {
                         result.error(ERROR_CODE, "Failed call", "Missing callee_id")
@@ -81,9 +81,10 @@ class MainActivity: FlutterActivity() {
                         override fun onEnded(call: DirectCall) {}
                     })
                 }
-                "end_call" -> {
+                "end_direct_call" -> {
                     // End a call
                     directCall?.end();
+                    result.success(true);
                 }
                 else -> {
                     result.notImplemented()
