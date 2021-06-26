@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
@@ -20,14 +21,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isCalleeAvailable = false;
   bool _isCallActive = false;
   final _calleeController = TextEditingController();
+  List<String> _callees = [];
 
   @override
   void initState() {
     initSendbird().then((value) => setState(() {
+          _areConnected = value;
           statusString =
               "Sendbird status online: ${value.toString().toUpperCase()}";
         }));
-    _areConnected = true;
 
     _calleeController.addListener(() {});
     super.initState();
@@ -39,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: Center(child: Text('Sendbird Calls'))),
       body: Column(children: [
         statusField(),
-        _areConnected ? calleeIdField(_calleeController) : Container(),
+        _areConnected ? calleesField() : Container(),
         _areConnected && _isCalleeAvailable
             ? (_isCallActive ? hangupButton() : callButton(_calleeController))
             : Container(),
@@ -66,6 +68,35 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
       child: Text('$statusString'),
+    );
+  }
+
+  Widget calleesField() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
+      child: TextFieldTags(
+          initialTags: <String>[],
+          textFieldStyler: TextFieldStyler(
+            helperText: "Enter userId(s) to call",
+            hintText: "",
+          ),
+          tagsStyler: TagsStyler(),
+          onTag: (tag) {
+            // New callee id tag added
+            _callees.add(tag);
+            setState(() {
+              _isCalleeAvailable = true;
+            });
+          },
+          onDelete: (tag) {
+            _callees.remove(tag);
+            setState(() {
+              _isCalleeAvailable = _callees.length > 0;
+            });
+          },
+          validator: (tag) {
+            return null;
+          }),
     );
   }
 
@@ -120,10 +151,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<bool> startCalls(List<String> callerIds) async {
+    if (callerIds.length == 1) {
+      return startCall(callerIds[0]);
+    }
+    return startGroupCall(callerIds);
+  }
+
   Future<bool> startCall(String calleeId) async {
     try {
       final bool result = await platform.invokeMethod("direct_call", {
         "callee_id": calleeId,
+      });
+      setState(() {
+        _isCallActive = true;
+      });
+      return result;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  Future<bool> startGroupCall(List<String> calleeIds) async {
+    try {
+      final bool result = await platform.invokeMethod("group_call", {
+        "callee_ids": calleeIds,
       });
       setState(() {
         _isCallActive = true;

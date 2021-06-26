@@ -81,6 +81,9 @@ class MainActivity: FlutterActivity() {
                         override fun onEnded(call: DirectCall) {}
                     })
                 }
+                "group_call"->{
+                    result.notImplemented()
+                }
                 "end_direct_call" -> {
                     // End a call
                     directCall?.end();

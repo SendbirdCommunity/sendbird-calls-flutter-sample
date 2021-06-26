@@ -2,6 +2,9 @@
 
 A new Flutter project.
 
+## Dependencies
+The [textfield_tags](https://pub.dev/packages/textfield_tags) package has been added to conveniently enter in multiple userIds. This package has been slightly modified as to NOT automatically lowercase all tags - as Sendbird permits cased user ids.
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
