@@ -22,10 +22,12 @@ import SendBirdCalls
             return
         }
         
-//        let APP_ID = "885C2616-DBF8-4BDC-9178-4A1A662614E3"
+        // Optional access token
+        let accessToken = args["user_access_token"] as? String
+        
         SendBirdCall.configure(appId: APP_ID)
         SBCLogger.setLoggerLevel(.info)
-        let params = AuthenticateParams(userId: userId, accessToken: "TOKEN")
+        let params = AuthenticateParams(userId: userId, accessToken: accessToken)
         
         SendBirdCall.authenticate(with: params) { (user, error) in
             
@@ -53,10 +55,12 @@ import SendBirdCalls
 
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
 
-            guard call.method == "init" else { return }
-        
-            self.initSendbird(call: call) { (connected) -> () in
-                    result(connected)
+            switch call.method {
+                case "init":
+                    self.initSendbird(call: call) { (connected) -> () in
+                            result(connected)
+                    }
+                default: result(FlutterMethodNotImplemented)
             }
         })
         

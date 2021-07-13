@@ -1,21 +1,26 @@
 package com.example.sendbird_flutter_calls
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import androidx.annotation.NonNull
 import com.sendbird.calls.*
+import com.sendbird.calls.SendBirdCall.addListener
+import com.sendbird.calls.SendBirdCall.dial
+import com.sendbird.calls.handler.AuthenticateHandler
+import com.sendbird.calls.handler.DialHandler
+import com.sendbird.calls.handler.DirectCallListener
+import com.sendbird.calls.handler.SendBirdCallListener
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import com.sendbird.calls.handler.AuthenticateHandler
-import com.sendbird.calls.handler.DirectCallListener
-import com.sendbird.calls.handler.SendBirdCallListener
 import java.util.*
+
 
 class MainActivity: FlutterActivity() {
     private val METHOD_CHANNEL_NAME = "com.sendbird.calls/method"
+    private val ERROR_CODE = "Sendbird Calls"
     private var methodChannel: MethodChannel? = null
+    private var directCall: DirectCall? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -29,35 +34,74 @@ class MainActivity: FlutterActivity() {
         super.onDestroy()
     }
 
-    private fun setupChannels(context:Context, messenger: BinaryMessenger){
-            methodChannel = MethodChannel(messenger, METHOD_CHANNEL_NAME)
-            methodChannel!!.setMethodCallHandler{call, result ->
-                if (call.method == "init"){
+    private fun setupChannels(context:Context, messenger: BinaryMessenger) {
+        methodChannel = MethodChannel(messenger, METHOD_CHANNEL_NAME)
+        methodChannel!!.setMethodCallHandler { call, result ->
+            when(call.method) {
+                "init" -> {
                     val appId: String? = call.argument("app_id")
                     val userId: String? = call.argument("user_id")
-                    if (appId == null) {
-                        result.error("Sendbird Calls", "Failed Init", "Missing app_id")
-                    } else if (userId == null) {
-                        result.error("Sendbird Calls", "Failed Init", "Missing user_id")
-                    } else {
-                        initSendbird(context, appId!!, userId!!) { successful ->
-                            if (!successful) {
-                                result.error("Sendbird Calls", "Failed init", "Problem initializing Sendbird. Check for valid app_id")
-                            } else {
-                                result.success(true)
+                    when {
+                        appId == null -> {
+                            result.error(ERROR_CODE, "Failed Init", "Missing app_id")
+                        }
+                        userId == null -> {
+                            result.error(ERROR_CODE, "Failed Init", "Missing user_id")
+                        }
+                        else -> {
+                            initSendbird(context, appId!!, userId!!) { successful ->
+                                if (!successful) {
+                                    result.error(ERROR_CODE, "Failed init", "Problem initializing Sendbird. Check for valid app_id")
+                                } else {
+                                    result.success(true)
+                                }
                             }
                         }
                     }
-                } else {
+                }
+                "direct_call" -> {
+                    val calleeId: String? = call.argument("callee_id")
+                    if (calleeId == null) {
+                        result.error(ERROR_CODE, "Failed call", "Missing callee_id")
+                    }
+                    var params = DialParams(calleeId!!)
+                    params.setCallOptions(CallOptions())
+                    directCall = dial(params, object : DialHandler {
+                        override fun onResult(call: DirectCall?, e: SendBirdException?) {
+                            if (e != null) {
+                                result.error(ERROR_CODE, "Failed call", e.message)
+                                return
+                            }
+                            result.success(true)
+                        }
+                    })
+                    directCall?.setListener(object : DirectCallListener() {
+                        override fun onEstablished(call: DirectCall) {}
+                        override fun onConnected(call: DirectCall) {}
+                        override fun onEnded(call: DirectCall) {}
+                    })
+                }
+                "group_call"->{
+                    result.notImplemented()
+                }
+                "end_direct_call" -> {
+                    // End a call
+                    directCall?.end();
+                    result.success(true);
+                }
+                else -> {
                     result.notImplemented()
                 }
             }
+        }
     }
 
     private fun initSendbird(context: Context, appId: String , userId: String, callback: (Boolean)->Unit){
         // Initialize SendBirdCall instance to use APIs in your app.
         if(SendBirdCall.init(context, appId)){
             // Initialization successful
+
+                // Add event listeners
             SendBirdCall.addListener(UUID.randomUUID().toString(), object: SendBirdCallListener() {
                 override fun onRinging(call: DirectCall) {
                     val ongoingCallCount = SendBirdCall.ongoingCallCount
@@ -67,6 +111,8 @@ class MainActivity: FlutterActivity() {
                     }
 
                     call.setListener(object : DirectCallListener() {
+                        override fun onEstablished(call: DirectCall) {}
+
                         override fun onConnected(call: DirectCall) {
 
                         }
@@ -77,6 +123,8 @@ class MainActivity: FlutterActivity() {
 //                                CallService.stopService(context)
                             }
                         }
+                        override fun onRemoteAudioSettingsChanged(call: DirectCall) {}
+
                     })
                 }
             })
