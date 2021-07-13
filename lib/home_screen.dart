@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:textfield_tags/textfield_tags.dart';
 import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
@@ -46,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: Center(child: Text('Sendbird Calls'))),
       body: Column(children: [
         statusField(),
-        _areConnected ? calleesField() : Container(),
+        _areConnected ? calleeIdField(_calleeController) : Container(),
         _areConnected && _isCalleeAvailable
             ? (_isCallActive ? hangupButton() : callButton(_calleeController))
             : Container(),
@@ -74,35 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
       child: Text('$statusString'),
-    );
-  }
-
-  Widget calleesField() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
-      child: TextFieldTags(
-          initialTags: <String>[],
-          textFieldStyler: TextFieldStyler(
-            helperText: "Enter userId(s) to call",
-            hintText: "",
-          ),
-          tagsStyler: TagsStyler(),
-          onTag: (tag) {
-            // New callee id tag added
-            _callees.add(tag);
-            setState(() {
-              _isCalleeAvailable = true;
-            });
-          },
-          onDelete: (tag) {
-            _callees.remove(tag);
-            setState(() {
-              _isCalleeAvailable = _callees.length > 0;
-            });
-          },
-          validator: (tag) {
-            return null;
-          }),
     );
   }
 
