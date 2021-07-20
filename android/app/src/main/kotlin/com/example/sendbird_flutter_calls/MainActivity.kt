@@ -81,9 +81,6 @@ class MainActivity: FlutterActivity() {
                         override fun onEnded(call: DirectCall) {}
                     })
                 }
-                "start_group_call"->{
-                    result.notImplemented()
-                }
                 "answer_direct_call"->{
                     directCall?.accept(AcceptParams())
                 }

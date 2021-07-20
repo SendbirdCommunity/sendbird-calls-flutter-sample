@@ -26,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isCallActive = false;
   bool _areReceivingCall = false;
   final _calleeController = TextEditingController();
-  List<String> _callees = [];
 
   @override
   void initState() {
@@ -185,31 +184,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<bool> startCalls(List<String> callerIds) async {
-    if (callerIds.length == 1) {
-      return startCall(callerIds[0]);
-    }
-    return startGroupCall(callerIds);
-  }
-
   Future<bool> startCall(String calleeId) async {
     try {
       final bool result = await platform.invokeMethod("start_direct_call", {
         "callee_id": calleeId,
-      });
-      setState(() {
-        _isCallActive = true;
-      });
-      return result;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  Future<bool> startGroupCall(List<String> calleeIds) async {
-    try {
-      final bool result = await platform.invokeMethod("start_group_call", {
-        "callee_ids": calleeIds,
       });
       setState(() {
         _isCallActive = true;
