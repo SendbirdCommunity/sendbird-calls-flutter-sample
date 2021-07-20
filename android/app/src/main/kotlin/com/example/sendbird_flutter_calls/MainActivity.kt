@@ -59,7 +59,7 @@ class MainActivity: FlutterActivity() {
                         }
                     }
                 }
-                "direct_call" -> {
+                "start_direct_call" -> {
                     val calleeId: String? = call.argument("callee_id")
                     if (calleeId == null) {
                         result.error(ERROR_CODE, "Failed call", "Missing callee_id")
@@ -81,8 +81,11 @@ class MainActivity: FlutterActivity() {
                         override fun onEnded(call: DirectCall) {}
                     })
                 }
-                "group_call"->{
+                "start_group_call"->{
                     result.notImplemented()
+                }
+                "answer_direct_call"->{
+                    directCall?.accept(AcceptParams())
                 }
                 "end_direct_call" -> {
                     // End a call
@@ -104,6 +107,10 @@ class MainActivity: FlutterActivity() {
                 // Add event listeners
             SendBirdCall.addListener(UUID.randomUUID().toString(), object: SendBirdCallListener() {
                 override fun onRinging(call: DirectCall) {
+
+                    methodChannel?.invokeMethod("direct_call_received"){
+                    }
+
                     val ongoingCallCount = SendBirdCall.ongoingCallCount
                     if (ongoingCallCount >= 2) {
                         call.end()
@@ -114,13 +121,16 @@ class MainActivity: FlutterActivity() {
                         override fun onEstablished(call: DirectCall) {}
 
                         override fun onConnected(call: DirectCall) {
-
+                            methodChannel?.invokeMethod("direct_call_connected"){
+                            }
                         }
 
                         override fun onEnded(call: DirectCall) {
                             val ongoingCallCount = SendBirdCall.ongoingCallCount
                             if (ongoingCallCount == 0) {
 //                                CallService.stopService(context)
+                            }
+                            methodChannel?.invokeMethod("direct_call_ended"){
                             }
                         }
                         override fun onRemoteAudioSettingsChanged(call: DirectCall) {}

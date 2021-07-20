@@ -10,19 +10,52 @@ import Flutter
 import SendBirdCalls
 
 let ERROR_CODE: String = "Sendbird Calls"
+let callHandler = SendbirdCallHandler()
+var callsChannel : FlutterMethodChannel?
 var directCall : DirectCall?
+var receivingDirectCall : DirectCall?
 
-func initSendbirdChannels(appDelegate: FlutterAppDelegate){
-    return initSendbirdChannels(appDelegate: appDelegate, callDelegate: nil)
+class SendbirdCallHandler : SendBirdCallDelegate, DirectCallDelegate {
+    
+    // SendbirdCallDelegate
+    func didStartRinging(_ call: DirectCall) {
+        // Inform Flutter layer
+        DispatchQueue.main.async {
+            callsChannel?.invokeMethod("direct_call_received", arguments: {})
+            receivingDirectCall = call
+        }
+    }
+
+    // DirectCallDelegates
+    func didConnect(_ call: DirectCall) {
+        // Inform Flutter layer
+        DispatchQueue.main.async {
+            callsChannel?.invokeMethod("direct_call_connected", arguments: {})
+        }
+    }
+
+    func didEnd(_ call: DirectCall) {
+        // Inform Flutter layer
+        DispatchQueue.main.async {
+            callsChannel?.invokeMethod("direct_call_ended", arguments: {})
+        }
+    }
+}
+    
+func enableSendbirdChannels(appDelegate: FlutterAppDelegate){
+    return initSendbirdChannels(appDelegate: appDelegate,
+                                callDelegate: callHandler)
 }
 
-func initSendbirdChannels(appDelegate: FlutterAppDelegate, callDelegate: DirectCallDelegate?){
+func initSendbirdChannels(appDelegate: FlutterAppDelegate,
+                          callDelegate: DirectCallDelegate){
+    
     // Set up Flutter Platform Channels
     
     let controller : FlutterViewController = appDelegate.window?.rootViewController as! FlutterViewController
-    let callsChannel = FlutterMethodChannel(name: "com.sendbird.calls/method",
+    callsChannel = FlutterMethodChannel(name: "com.sendbird.calls/method",
                                             binaryMessenger: controller.binaryMessenger)
-    callsChannel.setMethodCallHandler({
+    callsChannel?.setMethodCallHandler({
 
         (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
 
@@ -31,7 +64,8 @@ func initSendbirdChannels(appDelegate: FlutterAppDelegate, callDelegate: DirectC
                 initSendbird(call: call) { (connected) -> () in
                         result(connected)
                 }
-            case "direct_call":
+                return
+            case "start_direct_call":
                 guard let args = call.arguments as? [String: Any] else {
                     result(FlutterError(code: ERROR_CODE, message: "FlutterMethodCall argument invalid", details: "Not expected [String:Any] type found: \(type(of:call.arguments))"))
                     return
@@ -46,11 +80,16 @@ func initSendbirdChannels(appDelegate: FlutterAppDelegate, callDelegate: DirectC
                     }
                     result(FlutterError(code: ERROR_CODE, message: e.description, details: "\(e.errorCode)"))
                 }
-            case "answer_call":
-                result(FlutterMethodNotImplemented)
-//                answerDirectCall()
+                return
+            case "answer_direct_call":
+                directCall = receivingDirectCall
+                directCall?.accept(with: AcceptParams())
+                result(true)
+                return
             case "end_direct_call":
                 directCall?.end()
+                result(true)
+                return
             default: result(FlutterMethodNotImplemented)
         }
     })
@@ -100,8 +139,4 @@ func makeDirectCall(calleeId: String, callDelegate: DirectCallDelegate?, callCom
     let directCall = SendBirdCall.dial(with: params, completionHandler: callCompletion)
     directCall?.delegate = callDelegate
     return directCall
-}
-
-func answerDirectCall(){
-    
 }
