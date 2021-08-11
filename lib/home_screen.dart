@@ -47,12 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<dynamic> _handleNativeMethods(MethodCall call) async {
     switch (call.method) {
       case "direct_call_received":
+        print('home_screen: _handleNativeMethods: receiving call detected.');
+
         setState(() {
           _areReceivingCall = true;
         });
         return new Future.value("");
-        ;
       case "direct_call_connected":
+        print('home_screen: _handleNativeMethods: call connected.');
+
         setState(() {
           _areReceivingCall = false;
           _isCallActive = true;
@@ -119,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget dynamicButton() {
     if (_areReceivingCall) {
+      print('home_screen: dynamicButton: receiving call detected.');
       return receivingCallButton(_calleeController);
     }
     if (_areConnected && _isCalleeAvailable && _isCallActive) {
