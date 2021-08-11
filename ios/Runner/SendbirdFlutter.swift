@@ -21,7 +21,7 @@ class SendbirdCallHandler : SendBirdCallDelegate, DirectCallDelegate {
     func didStartRinging(_ call: DirectCall) {
         // Inform Flutter layer
         DispatchQueue.main.async {
-            callsChannel?.invokeMethod("direct_call_received", arguments: {})
+            callsChannel?.invokeMethod("direct_call_received", arguments: nil)
             receivingDirectCall = call
         }
     }
@@ -30,14 +30,15 @@ class SendbirdCallHandler : SendBirdCallDelegate, DirectCallDelegate {
     func didConnect(_ call: DirectCall) {
         // Inform Flutter layer
         DispatchQueue.main.async {
-            callsChannel?.invokeMethod("direct_call_connected", arguments: {})
+            print("SendbirdFlutter: didConnect")
+            callsChannel?.invokeMethod("direct_call_connected", arguments: nil)
         }
     }
 
     func didEnd(_ call: DirectCall) {
         // Inform Flutter layer
         DispatchQueue.main.async {
-            callsChannel?.invokeMethod("direct_call_ended", arguments: {})
+            callsChannel?.invokeMethod("direct_call_ended", arguments: nil)
         }
     }
 }
