@@ -21,8 +21,17 @@ class SendbirdCallHandler : SendBirdCallDelegate, DirectCallDelegate {
     func didStartRinging(_ call: DirectCall) {
         // Inform Flutter layer
         DispatchQueue.main.async {
-            callsChannel?.invokeMethod("direct_call_received", arguments: nil)
+            print("SendbirdFlutter: didStartRinging")
             receivingDirectCall = call
+            callsChannel?.invokeMethod("direct_call_received", arguments: nil)
+        }
+    }
+    
+    func didEstablish(_ call: DirectCall) {
+        // Inform Flutter layer
+        DispatchQueue.main.async {
+            print("SendbirdFlutter: didEstablish")
+            callsChannel?.invokeMethod("direct_call_established", arguments: nil)
         }
     }
 
@@ -60,6 +69,8 @@ func initSendbirdChannels(appDelegate: FlutterAppDelegate,
 
         (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
 
+        print("SendbirdFlutter: call method received: \(call.method)")
+        
         switch call.method {
             case "init":
                 initSendbird(call: call) { (connected) -> () in
@@ -81,6 +92,7 @@ func initSendbirdChannels(appDelegate: FlutterAppDelegate,
                     }
                     result(FlutterError(code: ERROR_CODE, message: e.description, details: "\(e.errorCode)"))
                 }
+                result(true)
                 return
             case "answer_direct_call":
                 directCall = receivingDirectCall

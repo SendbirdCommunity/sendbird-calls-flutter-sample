@@ -77,7 +77,13 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(children: [
         statusField(),
         _areConnected ? calleeIdField(_calleeController) : Container(),
-        dynamicButton(),
+        _areReceivingCall
+            ? receivingCallButton(_calleeController)
+            : _isCallActive
+                ? hangupButton()
+                : _isCalleeAvailable
+                    ? callButton(_calleeController)
+                    : Container(),
       ]),
     );
   }
@@ -118,20 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(labelText: "Callee User Id"),
       ),
     );
-  }
-
-  Widget dynamicButton() {
-    if (_areReceivingCall) {
-      print('home_screen: dynamicButton: receiving call detected.');
-      return receivingCallButton(_calleeController);
-    }
-    if (_areConnected && _isCalleeAvailable && _isCallActive) {
-      return hangupButton();
-    }
-    if (_areConnected && _isCalleeAvailable && !_isCallActive) {
-      return callButton(_calleeController);
-    }
-    return Container();
   }
 
   Widget callButton(TextEditingController controller) {
