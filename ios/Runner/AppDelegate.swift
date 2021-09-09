@@ -1,16 +1,15 @@
 import UIKit
-//import Flutter
-//import SendBirdCalls
+import PushKit
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
-        
+            
     override func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
-        
-        enableSendbirdChannels(appDelegate: self)
+                
+        enableSendbirdChannels()
         
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
