@@ -15,10 +15,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: HomeScreen(
-        appId: "D56438AE-B4DB-4DC9-B440-E032D7B35CEB",
-        userId: "jason",
-        accessToken: null,
-      ),
+          // appId: "D56438AE-B4DB-4DC9-B440-E032D7B35CEB",
+          // userId: "jason",
+          // accessToken: null,
+          ),
     );
   }
 }
