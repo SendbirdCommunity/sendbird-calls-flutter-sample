@@ -11,6 +11,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _userIdController = TextEditingController();
 
   bool _isCalleeAvailable = false;
+  bool _areCalling = false;
   bool _areConnected = false;
   bool _isCallActive = false;
   bool _areReceivingCall = false;
@@ -18,6 +19,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? callerId;
   String? callerNickname;
   SendbirdChannels? channels;
+
+  final appId = "D56438AE-B4DB-4DC9-B440-E032D7B35CEB";
+  final userId = "jason";
 
   @override
   void initState() {
@@ -31,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }),
       directCallConnected: () {
         setState(() {
+          _areCalling = false;
           _areReceivingCall = false;
           _isCallActive = true;
         });
@@ -38,19 +43,32 @@ class _HomeScreenState extends State<HomeScreen> {
       directCallEnded: () {
         setState(() {
           _isCallActive = false;
+          _areCalling = false;
+          _areReceivingCall = false;
           callerId = null;
           callerNickname = null;
         });
       },
+      onError: ((message) {
+        print("home_screen.dart: initState: onError: message: $message");
+      }),
     );
+    channels
+        ?.initSendbird(
+          appId: appId,
+          userId: userId,
+        )
+        .then((value) => setState(() {
+              _areConnected = value;
+            }));
 
-    _userIdController.addListener(() {
-      channels
-          ?.initSendbird(userId: _userIdController.text)
-          .then((value) => setState(() {
-                _areConnected = value;
-              }));
-    });
+    // _userIdController.addListener(() {
+    //   channels
+    //       ?.initSendbird(userId: _userIdController.text)
+    //       .then((value) => setState(() {
+    //             _areConnected = value;
+    //           }));
+    // });
 
     super.initState();
   }
@@ -63,12 +81,11 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
         child: Column(children: [
           Row(children: [
-            SizedBox(width: 80, child: Text("Caller")),
-            Container(width: 10),
-            SizedBox(width: 150, child: userIdField(_userIdController)),
+            SizedBox(width: 240, child: Text("Connection status for $userId:")),
             Expanded(child: statusField()),
           ]),
           Container(height: 20),
+          // statusField(),
           Row(children: [
             SizedBox(width: 80, child: Text("Calling")),
             Container(width: 10),
@@ -76,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(width: 10),
             Expanded(
                 child: _isCalleeAvailable
-                    ? _areConnected && !_isCallActive
+                    ? _areConnected && !_isCallActive && !_areCalling
                         ? callButton(_calleeController)
                         : Container()
                     : Container()),
@@ -98,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(height: 20),
           ]),
           Container(height: 10),
-          _isCallActive ? hangupButton() : Container(),
+          _isCallActive || _areCalling ? hangupButton() : Container(),
         ]),
       ),
     );
@@ -132,32 +149,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget appIdField(TextEditingController controller) {
-    return Container(
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: "Sendbird App Id"),
-      ),
-    );
-  }
+  // Widget appIdField(TextEditingController controller) {
+  //   return Container(
+  //     child: TextField(
+  //       controller: controller,
+  //       decoration: InputDecoration(labelText: "Sendbird App Id"),
+  //     ),
+  //   );
+  // }
 
-  Widget userIdField(TextEditingController controller) {
-    return Container(
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: "User Id"),
-      ),
-    );
-  }
+  // Widget userIdField(TextEditingController controller) {
+  //   return Container(
+  //     child: TextField(
+  //       controller: controller,
+  //       decoration: InputDecoration(labelText: "User Id"),
+  //       // onEditingComplete: () {
+  //       //   channels
+  //       //       ?.initSendbird(userId: controller.text)
+  //       //       .then((value) => setState(() {
+  //       //             _areConnected = value;
+  //       //           }));
+  //       // },
+  //     ),
+  //   );
+  // }
 
-  Widget accessTokenField(TextEditingController controller) {
-    return Container(
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: "Access Token (optional)"),
-      ),
-    );
-  }
+  // Widget accessTokenField(TextEditingController controller) {
+  //   return Container(
+  //     child: TextField(
+  //       controller: controller,
+  //       decoration: InputDecoration(labelText: "Access Token (optional)"),
+  //     ),
+  //   );
+  // }
 
   Widget statusField() {
     return Container(
@@ -193,8 +217,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget callButton(TextEditingController controller) {
     return Container(
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           channels?.startCall(controller.text);
+          setState(() {
+            _areCalling = true;
+          });
           // startCall(controller.text);
         },
         child: Icon(

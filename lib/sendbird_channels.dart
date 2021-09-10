@@ -14,11 +14,13 @@ class SendbirdChannels {
   Function()? directCallEstablished;
   Function()? directCallConnected;
   Function(String message)? onError;
-  final appId = "YOUR_SENDBIRD_APP_ID";
+  var appId;
+  var userId;
 
   static const platform = MethodChannel('com.sendbird.calls/method');
 
   Future<bool> initSendbird({
+    required String appId,
     required String userId,
     String? accessToken,
   }) async {
@@ -33,6 +35,8 @@ class SendbirdChannels {
           "access_token": accessToken,
         },
       );
+      this.appId = appId;
+      this.userId = userId;
       return result;
     } catch (e) {
       print('sendbird_channels: initSendbird: ERROR: $e');

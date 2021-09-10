@@ -5,28 +5,26 @@
 //  Created by jasonkoo on 9/7/21.
 //
 
-import CallKit
-import PushKit
+
 import Flutter
 import SendBirdCalls
 
 let ERROR_CODE: String = "Sendbird Calls"
 let VOIP_TOKEN_KEY : String = "SendbirdVOIP_token"
 
-let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
 var callsChannel : FlutterMethodChannel?
 var directCall : DirectCall?
-var receivingDirectCall : DirectCall?
+//var remoteNotificationToken
 
-extension AppDelegate: PKPushRegistryDelegate, SendBirdCallDelegate, DirectCallDelegate {
+extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     
     func enableSendbirdChannels(){
         // To receive incoming call, you need to register VoIP push token
-        voipRegistry.delegate = self
-        voipRegistry.desiredPushTypes = [.voIP]
+//        voipRegistry.delegate = self
+//        voipRegistry.desiredPushTypes = [.voIP]
 
         // Add the call delegate to the SendBirdCall SDK
-        SendBirdCall.addDelegate(self, identifier: "flutter")
+//        SendBirdCall.addDelegate(self, identifier: "flutter")
 
         // Setup the Flutter platform channles to receive calls from Dartside code
         let controller : FlutterViewController = self.window?.rootViewController as! FlutterViewController
@@ -39,8 +37,23 @@ extension AppDelegate: PKPushRegistryDelegate, SendBirdCallDelegate, DirectCallD
             switch call.method {
                 case "init":
                     initSendbird(call: call) { (connected) -> () in
-                            result(connected)
+                        result(connected)
+                        SendBirdCall.addDelegate(self, identifier: "flutter")
+                        SendBirdCall.registerRemotePush(token: remoteNotificationToken) { (error) in
+                            guard error == nil else {
+                                // TODO: Handle error.
+                                print("AppDelegate+SendbirdDirectCalls: initSendbird: ERROR: \(String(describing: error))")
+                                DispatchQueue.main.async {
+                                    let payload = [ "message": "\(String(describing: error))"]
+                                    callsChannel?.invokeMethod("error", arguments: payload)
+                                }
+                                return
+                            }
+
+                            // Handle registering the device token.
+                        }
                     }
+
                     return
                 case "start_direct_call":
                     guard let args = call.arguments as? [String: Any] else {
@@ -56,11 +69,11 @@ extension AppDelegate: PKPushRegistryDelegate, SendBirdCallDelegate, DirectCallD
                             return
                         }
                         result(FlutterError(code: ERROR_CODE, message: e.description, details: "\(e.errorCode)"))
+                        result(true)
                     }
-                    result(true)
                     return
                 case "answer_direct_call":
-                    receivingDirectCall?.accept(with: AcceptParams())
+                    directCall?.accept(with: AcceptParams())
                     result(true)
                     return
                 case "end_direct_call":
@@ -74,67 +87,57 @@ extension AppDelegate: PKPushRegistryDelegate, SendBirdCallDelegate, DirectCallD
         GeneratedPluginRegistrant.register(with: self)
     }
     
-    // PKPushRegistryDelgates
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
-        
-        SendBirdCall.registerVoIPPush(token: pushCredentials.token, unique: true) { error in
-            guard error == nil else { return }
-        }
-    }
+
+    // Remote push notifications
+//    override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+//    
+//        
+//    }
+//    
+//    func remoteNotificationsRegistration(_ application: UIApplication) {
+//           application.registerForRemoteNotifications()
+//
+//           let center = UNUserNotificationCenter.current()
+//           center.requestAuthorization(options: [.alert, .badge, .sound]) { (success, error) in
+//               guard error == nil else {
+//                   // Handle error while requesting permission for notifications.
+//               }
+//
+//               // If the success is true, the permission is given and notifications will be delivered.
+//           }
+//       }
+//    
+//    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+//        
+//        // Store token until user is connected with Sendbird
+//        remoteNotificationToken = deviceToken;
+//        
+////        SendBirdCall.registerRemotePush(token: deviceToken) { (error) in
+////            guard error == nil else {
+////                // Handle error.
+////            }
+////
+////            // Handle registering the device token.
+////        }
+//    }
+//
+//    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+//        SendBirdCall.application(application, didReceiveRemoteNotification: userInfo)
+//    }
     
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
-        SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completionHandler: nil)
-    }
     
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type) { [weak self] uuid in
-            guard uuid != nil else {
-                let update = CXCallUpdate()
-                update.remoteHandle = CXHandle(type: .generic, value: "invalid")
-                let randomUUID = UUID()
-                
-                let providerConfiguration = CXProviderConfiguration(localizedName: "Sendbird Calls")
-                if let image = UIImage(named: "icLogoSymbolInverse") {
-                    providerConfiguration.iconTemplateImageData = image.pngData()
-                }
-                // Even if `.supportsVideo` has `false` value, SendBirdCalls supports video call.
-                // However, it needs to be `true` if you want to make video call from native call log, so called "Recents"
-                // and update correct type of call log in Recents
-                providerConfiguration.supportsVideo = true
-                providerConfiguration.maximumCallsPerCallGroup = 1
-                providerConfiguration.maximumCallGroups = 1
-                providerConfiguration.supportedHandleTypes = [.generic]
-                
-                // Set up ringing sound
-                // If you want to set up other sounds such as dialing, reconnecting and reconnected, see `AppDelegate+SoundEffects.swift` file.
-                 providerConfiguration.ringtoneSound = "Ringing.mp3"
-                
-                let provider = CXProvider(configuration: providerConfiguration)
-                provider.reportNewIncomingCall(with: randomUUID, update: update) { [weak provider](error) in
-                    provider?.reportCall(with: randomUUID, endedAt: Date(), reason: .failed)
-                }
-                completion()
-                return
-            }
-            
-            completion()
-        }
-    }
     
     // SendbirdCallDelegate
     func didStartRinging(_ call: DirectCall) {
 
         call.delegate = self
-        receivingDirectCall = call
+        directCall = call
 
         // Use CXProvider to report the incoming call to the system
         // Construct a CXCallUpdate describing the incoming call, including the caller.
         let name = call.caller?.userId ?? "Unknown"
         let nickname = call.caller?.nickname ?? "Unknown"
-        let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type: .generic, value: name)
-        update.hasVideo = call.isVideoCall
-        update.localizedCallerName = name
+
         
         // Inform Flutter layer
         DispatchQueue.main.async {
@@ -202,10 +205,32 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
             completion(false)
             return
         }
+        
         completion(true)
         print(user)
     }
 }
+
+//func sendbirdProvider() -> CXProvider {
+//    let providerConfiguration = CXProviderConfiguration(localizedName: "Sendbird Calls")
+//    if let image = UIImage(named: "icLogoSymbolInverse") {
+//        providerConfiguration.iconTemplateImageData = image.pngData()
+//    }
+//    // Even if `.supportsVideo` has `false` value, SendBirdCalls supports video call.
+//    // However, it needs to be `true` if you want to make video call from native call log, so called "Recents"
+//    // and update correct type of call log in Recents
+//    providerConfiguration.supportsVideo = true
+//    providerConfiguration.maximumCallsPerCallGroup = 1
+//    providerConfiguration.maximumCallGroups = 1
+//    providerConfiguration.supportedHandleTypes = [.generic]
+//
+//    // Set up ringing sound
+//    // If you want to set up other sounds such as dialing, reconnecting and reconnected, see `AppDelegate+SoundEffects.swift` file.
+//     providerConfiguration.ringtoneSound = "Ringing.mp3"
+//
+//    let provider = CXProvider(configuration: providerConfiguration)
+//    return provider
+//}
 
 func makeDirectCall(calleeId: String, callDelegate: DirectCallDelegate?, callCompletion: @escaping DirectCallHandler) -> DirectCall? {
     let params = DialParams(calleeId: calleeId, callOptions: CallOptions())
