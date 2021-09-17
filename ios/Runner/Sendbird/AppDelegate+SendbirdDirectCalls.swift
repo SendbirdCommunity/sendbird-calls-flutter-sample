@@ -19,12 +19,6 @@ var directCall : DirectCall?
 extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     
     func enableSendbirdChannels(){
-        // To receive incoming call, you need to register VoIP push token
-//        voipRegistry.delegate = self
-//        voipRegistry.desiredPushTypes = [.voIP]
-
-        // Add the call delegate to the SendBirdCall SDK
-//        SendBirdCall.addDelegate(self, identifier: "flutter")
 
         // Setup the Flutter platform channles to receive calls from Dartside code
         let controller : FlutterViewController = self.window?.rootViewController as! FlutterViewController
@@ -86,44 +80,6 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
         
         GeneratedPluginRegistrant.register(with: self)
     }
-    
-
-    // Remote push notifications
-//    override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-//    
-//        
-//    }
-//    
-//    func remoteNotificationsRegistration(_ application: UIApplication) {
-//           application.registerForRemoteNotifications()
-//
-//           let center = UNUserNotificationCenter.current()
-//           center.requestAuthorization(options: [.alert, .badge, .sound]) { (success, error) in
-//               guard error == nil else {
-//                   // Handle error while requesting permission for notifications.
-//               }
-//
-//               // If the success is true, the permission is given and notifications will be delivered.
-//           }
-//       }
-//    
-//    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-//        
-//        // Store token until user is connected with Sendbird
-//        remoteNotificationToken = deviceToken;
-//        
-////        SendBirdCall.registerRemotePush(token: deviceToken) { (error) in
-////            guard error == nil else {
-////                // Handle error.
-////            }
-////
-////            // Handle registering the device token.
-////        }
-//    }
-//
-//    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-//        SendBirdCall.application(application, didReceiveRemoteNotification: userInfo)
-//    }
     
     
     

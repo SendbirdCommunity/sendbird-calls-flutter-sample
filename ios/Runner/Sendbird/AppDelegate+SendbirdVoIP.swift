@@ -39,6 +39,8 @@ extension AppDelegate: PKPushRegistryDelegate {
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         
+        print("pushRegistry: payload received: \(payload as AnyObject)")
+        
         SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type) { uuid in
             guard uuid != nil else {
 
@@ -59,33 +61,14 @@ extension AppDelegate: PKPushRegistryDelegate {
                 return
             }
 
+            DispatchQueue.main.async {
+                let payload = [ "message": "registerVoIPPush paylaod: \(String(describing: payload as AnyObject))"]
+                callsChannel?.invokeMethod("error", arguments: payload)
+            }
             completion()
         }
     }
     
-    func didStartRingingFromPush(_ call: DirectCall) {
-        // IMPORTANT: An incoming call should be delivered to this delegate method when you receive a PushKit push message for the call.
-//        let provider = CXProvider(configuration: CXProviderConfiguration)
-//        let update = CXCallUpdate()
-//        update.remoteHandle = CXHandle(type: .generic, value: CALLER_ID)
-//        provider.reportNewIncomingCall(with: uuid, update: update) { (error) in
-//            completion()
-//        }
-        
-        //        let update = CXCallUpdate()
-        //        update.remoteHandle = CXHandle(type: .generic, value: name)
-        //        update.hasVideo = call.isVideoCall
-        //        update.localizedCallerName = name
-                
-        //        let provider = CXProvider(configuration: CXProviderConfiguration)
-        //        let update = CXCallUpdate()
-        //        update.remoteHandle = CXHandle(type: .generic, value: "valid")
-        //        let randomUUID = UUID()
-        //        let provider = sendbirdProvider()
-        //        provider.reportNewIncomingCall(with: randomUUID, update: update) { (error) in
-        //            // Dispatch goes here?
-        //        }
-    }
 }
 
 func sendbirdProvider() -> CXProvider {

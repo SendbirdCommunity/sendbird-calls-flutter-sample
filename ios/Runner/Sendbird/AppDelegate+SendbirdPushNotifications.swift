@@ -37,6 +37,11 @@ extension AppDelegate {
 
     override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
+        DispatchQueue.main.async {
+            let payload = [ "message": "didReceiveRemoteNotification userInfo: \(String(describing: userInfo as AnyObject))"]
+            callsChannel?.invokeMethod("error", arguments: payload)
+        }
+        
         SendBirdCall.application(application, didReceiveRemoteNotification: userInfo)
     }
     
