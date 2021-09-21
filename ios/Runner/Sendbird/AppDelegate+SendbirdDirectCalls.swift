@@ -86,6 +86,8 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     // SendbirdCallDelegate
     func didStartRinging(_ call: DirectCall) {
 
+        print("AppDelegate+SendbirdCalls: didStartRinging: call: \(call as AnyObject)")
+
         call.delegate = self
         directCall = call
 
@@ -104,6 +106,9 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     }
     
     func didEstablish(_ call: DirectCall) {
+        
+        print("AppDelegate+SendbirdCalls: didEstablis: call: \(call as AnyObject)")
+
         // Inform Flutter layer
         DispatchQueue.main.async {
             callsChannel?.invokeMethod("direct_call_established", arguments: nil)
@@ -157,7 +162,8 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
         
         guard let user = user, error == nil else {
             // Handle error.
-            print("Error")
+            print("AppDelegate+SendbirdCalls: initSendbird: ERROR: \(error as AnyObject)")
+
             completion(false)
             return
         }
@@ -166,27 +172,6 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
         print(user)
     }
 }
-
-//func sendbirdProvider() -> CXProvider {
-//    let providerConfiguration = CXProviderConfiguration(localizedName: "Sendbird Calls")
-//    if let image = UIImage(named: "icLogoSymbolInverse") {
-//        providerConfiguration.iconTemplateImageData = image.pngData()
-//    }
-//    // Even if `.supportsVideo` has `false` value, SendBirdCalls supports video call.
-//    // However, it needs to be `true` if you want to make video call from native call log, so called "Recents"
-//    // and update correct type of call log in Recents
-//    providerConfiguration.supportsVideo = true
-//    providerConfiguration.maximumCallsPerCallGroup = 1
-//    providerConfiguration.maximumCallGroups = 1
-//    providerConfiguration.supportedHandleTypes = [.generic]
-//
-//    // Set up ringing sound
-//    // If you want to set up other sounds such as dialing, reconnecting and reconnected, see `AppDelegate+SoundEffects.swift` file.
-//     providerConfiguration.ringtoneSound = "Ringing.mp3"
-//
-//    let provider = CXProvider(configuration: providerConfiguration)
-//    return provider
-//}
 
 func makeDirectCall(calleeId: String, callDelegate: DirectCallDelegate?, callCompletion: @escaping DirectCallHandler) -> DirectCall? {
     let params = DialParams(calleeId: calleeId, callOptions: CallOptions())

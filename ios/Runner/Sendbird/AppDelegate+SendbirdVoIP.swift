@@ -22,12 +22,17 @@ extension AppDelegate: PKPushRegistryDelegate {
     // PKPushRegistryDelgates
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
 
+        print("pushRegistry: didUpdate w/ credentials: \(pushCredentials.token)")
+
         SendBirdCall.registerVoIPPush(token: pushCredentials.token, unique: true) { error in
             guard error != nil else {
-                DispatchQueue.main.async {
-                    let payload = [ "message": "registerVoIPPush Error: \(String(describing: error))"]
-                    callsChannel?.invokeMethod("error", arguments: payload)
-                }
+                
+                print("pushRegistry: didUpdate w/ credentials Sendbird registerVoIPush ERROR: \(String(describing: error))")
+
+//                DispatchQueue.main.async {
+//                    let payload = [ "message": "registerVoIPPush Error: \(String(describing: error))"]
+//                    callsChannel?.invokeMethod("error", arguments: payload)
+//                }
                 return
             }
         }
@@ -44,6 +49,8 @@ extension AppDelegate: PKPushRegistryDelegate {
         SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type) { uuid in
             guard uuid != nil else {
 
+                print("pushRegistry: didReceiveIncomingPushWith payload. Sendbird has no uuid.")
+                
                 DispatchQueue.main.async {
                     let payload = [ "message": "no uuid returned when receiving push payload: \(payload.dictionaryPayload as AnyObject)"]
                     callsChannel?.invokeMethod("error", arguments: payload)
@@ -61,10 +68,12 @@ extension AppDelegate: PKPushRegistryDelegate {
                 return
             }
 
-            DispatchQueue.main.async {
-                let payload = [ "message": "registerVoIPPush paylaod: \(String(describing: payload as AnyObject))"]
-                callsChannel?.invokeMethod("error", arguments: payload)
-            }
+            print("pushRegistry: didReceiveIncomingPushWith payload. Sendbird uuid: \(String(describing: uuid))")
+
+//            DispatchQueue.main.async {
+//                let payload = [ "message": "registerVoIPPush paylaod: \(String(describing: payload as AnyObject))"]
+//                callsChannel?.invokeMethod("error", arguments: payload)
+//            }
             completion()
         }
     }

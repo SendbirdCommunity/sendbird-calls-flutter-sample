@@ -21,6 +21,9 @@ extension AppDelegate {
            center.requestAuthorization(options: [.alert, .badge, .sound]) { (success, error) in
                guard error == nil else {
                    // Handle error while requesting permission for notifications.
+                   
+                   print("AppDelegate+SendbirdPushNotifications: enableSendbirdPushNotifications: ERROR: \(error as AnyObject)")
+
                 return;
                }
 
@@ -33,23 +36,30 @@ extension AppDelegate {
         // Store token until user is connected with Sendbird
         remoteNotificationToken = deviceToken;
         
+        print("application: didRegisterForRemoteNotificationsWithDeviceToken: deviceToken: \(deviceToken as AnyObject)")
+
     }
 
     override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
-        DispatchQueue.main.async {
-            let payload = [ "message": "didReceiveRemoteNotification userInfo: \(String(describing: userInfo as AnyObject))"]
-            callsChannel?.invokeMethod("error", arguments: payload)
-        }
+        print("application: didReceiveRemoteNotification: userInfo: \(userInfo as AnyObject)")
+
+//        DispatchQueue.main.async {
+//            let payload = [ "message": "didReceiveRemoteNotification userInfo: \(String(describing: userInfo as AnyObject))"]
+//            callsChannel?.invokeMethod("error", arguments: payload)
+//        }
         
         SendBirdCall.application(application, didReceiveRemoteNotification: userInfo)
     }
     
     override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        DispatchQueue.main.async {
-            let payload = [ "message": error.localizedDescription]
-            callsChannel?.invokeMethod("error", arguments: payload)
-        }
+        
+        print("application: didFailToRegisterForRemoteNotifications: ERROR: \(error as AnyObject)")
+
+//        DispatchQueue.main.async {
+//            let payload = [ "message": error.localizedDescription]
+//            callsChannel?.invokeMethod("error", arguments: payload)
+//        }
     }
     
 }
