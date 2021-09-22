@@ -10,15 +10,14 @@ import CallKit
 import PushKit
 import SendBirdCalls
 
-//let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
+let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
 
 extension AppDelegate: PKPushRegistryDelegate {
     
-    func enableSendbirdVoIP(voipRegistry: PKPushRegistry){
-//    func enableSendbirdVoIP(){
-
-            voipRegistry.delegate = self
-            voipRegistry.desiredPushTypes = [.voIP]
+    func enableSendbirdVoIP(){
+        
+        voipRegistry.delegate = self
+        voipRegistry.desiredPushTypes = [.voIP]
         
         print("AppDelegate + SendbirdVoIP: enableSendbirdVoIP: voipRegistry: \(voipRegistry as AnyObject)")
 
@@ -44,6 +43,7 @@ extension AppDelegate: PKPushRegistryDelegate {
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
+        
         print("AppDelegate + SendbirdVoIP: pushRegistry: didReceiveIncomingPushWith payload: \(payload as AnyObject) - no completion")
 
         SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completionHandler: nil)

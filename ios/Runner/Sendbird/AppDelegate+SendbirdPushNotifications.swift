@@ -12,36 +12,35 @@ var remoteNotificationToken: Data?
 
 extension AppDelegate {
 
-    
     func enableSendbirdPushNotifications(_ application: UIApplication) {
            
-            application.registerForRemoteNotifications()
-
-           let center = UNUserNotificationCenter.current()
-           center.requestAuthorization(options: [.alert, .badge, .sound]) { (success, error) in
-               guard error == nil else {
-                   // Handle error while requesting permission for notifications.
-                   
-                   print("AppDelegate+SendbirdPushNotifications: enableSendbirdPushNotifications: ERROR: \(error as AnyObject)")
-                   DispatchQueue.main.async {
-                       let payload = [ "message": "enableSendbird Error: \(String(describing: error))"]
-                       callsChannel?.invokeMethod("error", arguments: payload)
-                   }
+        application.registerForRemoteNotifications()
+        
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .badge, .sound]) { (success, error) in
+            guard error == nil else {
+                // Handle error while requesting permission for notifications.
+                
+                print("AppDelegate+SendbirdPushNotifications: enableSendbirdPushNotifications: ERROR: \(error as AnyObject)")
+                DispatchQueue.main.async {
+                    let payload = [ "message": "enableSendbird Error: \(String(describing: error))"]
+                    callsChannel?.invokeMethod("error", arguments: payload)
+                }
                 return;
-               }
-
-               // If the success is true, the permission is given and notifications will be delivered.
-               print("AppDelegate+SendbirdPushNotifications: authorization successful: \(success)")
-
-           }
+            }
+            
+            // If the success is true, the permission is given and notifications will be delivered.
+            print("AppDelegate+SendbirdPushNotifications: authorization successful: \(success)")
+            
+        }
        }
     
     override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         
+        print("AppDelegate+SendbirdPushNotifications: didRegisterForRemoteNotificationsWithDeviceToken: deviceToken: \(deviceToken as AnyObject)")
+        
         // Store token until user is connected with Sendbird
         remoteNotificationToken = deviceToken;
-        
-        print("AppDelegate+SendbirdPushNotifications: didRegisterForRemoteNotificationsWithDeviceToken: deviceToken: \(deviceToken as AnyObject)")
 
     }
 

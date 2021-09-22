@@ -12,6 +12,7 @@
 		718D671226EBBAD700AC3709 /* AppDelegate+SendbirdVoIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718D671126EBBAD700AC3709 /* AppDelegate+SendbirdVoIP.swift */; };
 		718D671426EBBDCC00AC3709 /* AppDelegate+SendbirdPushNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718D671326EBBDCC00AC3709 /* AppDelegate+SendbirdPushNotifications.swift */; };
 		7191E8E226EA5B2B002F4932 /* Ringing.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 7191E8E126EA5B2B002F4932 /* Ringing.mp3 */; };
+		71A031E726FBC56300D2441B /* AppDelegate+SendbirdFlutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A031E626FBC56300D2441B /* AppDelegate+SendbirdFlutter.swift */; };
 		71C30D7C26E81257007733F3 /* AppDelegate+SendbirdDirectCalls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71C30D7B26E81257007733F3 /* AppDelegate+SendbirdDirectCalls.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -40,6 +41,7 @@
 		718D671126EBBAD700AC3709 /* AppDelegate+SendbirdVoIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SendbirdVoIP.swift"; sourceTree = "<group>"; };
 		718D671326EBBDCC00AC3709 /* AppDelegate+SendbirdPushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SendbirdPushNotifications.swift"; sourceTree = "<group>"; };
 		7191E8E126EA5B2B002F4932 /* Ringing.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = Ringing.mp3; sourceTree = "<group>"; };
+		71A031E626FBC56300D2441B /* AppDelegate+SendbirdFlutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SendbirdFlutter.swift"; sourceTree = "<group>"; };
 		71C30D7B26E81257007733F3 /* AppDelegate+SendbirdDirectCalls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+SendbirdDirectCalls.swift"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -85,6 +87,7 @@
 				71C30D7B26E81257007733F3 /* AppDelegate+SendbirdDirectCalls.swift */,
 				718D671126EBBAD700AC3709 /* AppDelegate+SendbirdVoIP.swift */,
 				718D671326EBBDCC00AC3709 /* AppDelegate+SendbirdPushNotifications.swift */,
+				71A031E626FBC56300D2441B /* AppDelegate+SendbirdFlutter.swift */,
 			);
 			path = Sendbird;
 			sourceTree = "<group>";
@@ -294,6 +297,7 @@
 			files = (
 				718D671226EBBAD700AC3709 /* AppDelegate+SendbirdVoIP.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
+				71A031E726FBC56300D2441B /* AppDelegate+SendbirdFlutter.swift in Sources */,
 				718D671426EBBDCC00AC3709 /* AppDelegate+SendbirdPushNotifications.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				71C30D7C26E81257007733F3 /* AppDelegate+SendbirdDirectCalls.swift in Sources */,

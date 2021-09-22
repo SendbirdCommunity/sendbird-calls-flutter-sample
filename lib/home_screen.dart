@@ -8,7 +8,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _calleeController = TextEditingController();
-  final _userIdController = TextEditingController();
 
   bool _isCalleeAvailable = false;
   bool _areCalling = false;
@@ -146,43 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Widget appIdField(TextEditingController controller) {
-  //   return Container(
-  //     child: TextField(
-  //       controller: controller,
-  //       decoration: InputDecoration(labelText: "Sendbird App Id"),
-  //     ),
-  //   );
-  // }
-
-  // Widget userIdField(TextEditingController controller) {
-  //   return Container(
-  //     child: TextField(
-  //       controller: controller,
-  //       decoration: InputDecoration(labelText: "User Id"),
-  //       // onEditingComplete: () {
-  //       //   channels
-  //       //       ?.initSendbird(userId: controller.text)
-  //       //       .then((value) => setState(() {
-  //       //             _areConnected = value;
-  //       //           }));
-  //       // },
-  //     ),
-  //   );
-  // }
-
-  // Widget accessTokenField(TextEditingController controller) {
-  //   return Container(
-  //     child: TextField(
-  //       controller: controller,
-  //       decoration: InputDecoration(labelText: "Access Token (optional)"),
-  //     ),
-  //   );
-  // }
-
   Widget statusField() {
     return Container(
-        // padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
         child: _areConnected
             ? Icon(
                 Icons.check_circle,
@@ -198,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget calleeIdField(TextEditingController calleeController) {
     return Container(
-      // padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: TextField(
         controller: calleeController,
         onChanged: (text) {
@@ -219,7 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
           setState(() {
             _areCalling = true;
           });
-          // startCall(controller.text);
         },
         child: Icon(
           Icons.call,
@@ -240,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ElevatedButton(
         onPressed: () {
           channels?.pickupCall();
-          // pickupCall();
         },
         child: Icon(
           Icons.call,
@@ -262,12 +223,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ElevatedButton(
         onPressed: () {
           channels?.endCall();
-          // endCall();
         },
         child: Icon(
           Icons.call_end,
           color: Colors.white,
-          // size: 40.0,
         ),
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.all(20),

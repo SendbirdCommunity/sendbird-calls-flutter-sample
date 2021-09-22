@@ -14,7 +14,6 @@ let VOIP_TOKEN_KEY : String = "SendbirdVOIP_token"
 
 var callsChannel : FlutterMethodChannel?
 var directCall : DirectCall?
-//var remoteNotificationToken
 
 extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     
@@ -29,6 +28,7 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             
             print("AppDelegate+SendbirdDirectCalls: enableSendbirdChannels: method type received: \(call.method)")
+            
             switch call.method {
                 case "init":
                     initSendbird(call: call) { (connected) -> () in
@@ -110,9 +110,6 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     }
     
     func didEstablish(_ call: DirectCall) {
-        
-        print("AppDelegate+SendbirdDirectCalls: didEstablish: call: \(call as AnyObject)")
-
         // Inform Flutter layer
         DispatchQueue.main.async {
             callsChannel?.invokeMethod("direct_call_established", arguments: nil)
@@ -192,7 +189,6 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
             callsChannel?.invokeMethod("info", arguments: payload)
         }
         completion(true)
-//        print(user)
     }
 }
 
