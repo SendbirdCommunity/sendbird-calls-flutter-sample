@@ -20,39 +20,44 @@ class _HomeScreenState extends State<HomeScreen> {
   String? callerNickname;
   SendbirdChannels? channels;
 
+  // final appId = "686F5D90-EFC5-45A7-BF75-2E87EC70B779";
+  // final userId = "koo";
+
   final appId = "D56438AE-B4DB-4DC9-B440-E032D7B35CEB";
   final userId = "tanika";
 
+  // "05F50EF2-A137-4701-BB80-36ED115C5F5B";
+  // "jasonkoo";
+
   @override
   void initState() {
-    channels = SendbirdChannels(
-      directCallReceived: ((userId, nickname) {
-        setState(() {
-          callerId = userId;
-          callerNickname = nickname;
-          _areReceivingCall = true;
-        });
-      }),
-      directCallConnected: () {
-        setState(() {
-          _areCalling = false;
-          _areReceivingCall = false;
-          _isCallActive = true;
-        });
-      },
-      directCallEnded: () {
-        setState(() {
-          _isCallActive = false;
-          _areCalling = false;
-          _areReceivingCall = false;
-          callerId = null;
-          callerNickname = null;
-        });
-      },
-      onError: ((message) {
-        print("home_screen.dart: initState: onError: message: $message");
-      }),
-    );
+    channels = SendbirdChannels(directCallReceived: ((userId, nickname) {
+      setState(() {
+        callerId = userId;
+        callerNickname = nickname;
+        _areReceivingCall = true;
+      });
+    }), directCallConnected: () {
+      setState(() {
+        _areCalling = false;
+        _areReceivingCall = false;
+        _isCallActive = true;
+      });
+    }, directCallEnded: () {
+      setState(() {
+        _isCallActive = false;
+        _areCalling = false;
+        _areReceivingCall = false;
+        callerId = null;
+        callerNickname = null;
+      });
+    }, onError: ((message) {
+      print(
+          "home_screen.dart: initState: SendbirdChannels: onError: message: $message");
+    }), onLog: ((message) {
+      print(
+          "home_screen.dart: initState: SendbirdChannels onLog: message: $message");
+    }));
     channels
         ?.initSendbird(
           appId: appId,
@@ -61,14 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .then((value) => setState(() {
               _areConnected = value;
             }));
-
-    // _userIdController.addListener(() {
-    //   channels
-    //       ?.initSendbird(userId: _userIdController.text)
-    //       .then((value) => setState(() {
-    //             _areConnected = value;
-    //           }));
-    // });
 
     super.initState();
   }

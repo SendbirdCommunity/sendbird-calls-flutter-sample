@@ -22,10 +22,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Microphone access needed for voice calls</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access needed for video calls</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access needed for voice calls</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>voip</string>

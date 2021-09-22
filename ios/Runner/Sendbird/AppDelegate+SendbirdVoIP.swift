@@ -10,46 +10,53 @@ import CallKit
 import PushKit
 import SendBirdCalls
 
-let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
+//let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
 
 extension AppDelegate: PKPushRegistryDelegate {
     
-    func enableSendbirdVoIP(){
+    func enableSendbirdVoIP(voipRegistry: PKPushRegistry){
+//    func enableSendbirdVoIP(){
+
             voipRegistry.delegate = self
             voipRegistry.desiredPushTypes = [.voIP]
+        
+        print("AppDelegate + SendbirdVoIP: enableSendbirdVoIP: voipRegistry: \(voipRegistry as AnyObject)")
+
     }
     
     // PKPushRegistryDelgates
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
 
-        print("pushRegistry: didUpdate w/ credentials: \(pushCredentials.token)")
+        print("AppDelegate + SendbirdVoIP: pushRegistry: didUpdate w/ credentials: \(pushCredentials.token)")
 
         SendBirdCall.registerVoIPPush(token: pushCredentials.token, unique: true) { error in
             guard error != nil else {
                 
-                print("pushRegistry: didUpdate w/ credentials Sendbird registerVoIPush ERROR: \(String(describing: error))")
+                print("AppDelegate + SendbirdVoIP: enableSendbirdVoIP: didUpdate w/ credentials Sendbird registerVoIPush ERROR: \(String(describing: error))")
 
-//                DispatchQueue.main.async {
-//                    let payload = [ "message": "registerVoIPPush Error: \(String(describing: error))"]
-//                    callsChannel?.invokeMethod("error", arguments: payload)
-//                }
+                DispatchQueue.main.async {
+                    let payload = [ "message": "registerVoIPPush Error: \(String(describing: error))"]
+                    callsChannel?.invokeMethod("error", arguments: payload)
+                }
                 return
             }
         }
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType) {
+        print("AppDelegate + SendbirdVoIP: pushRegistry: didReceiveIncomingPushWith payload: \(payload as AnyObject) - no completion")
+
         SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type, completionHandler: nil)
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
         
-        print("pushRegistry: payload received: \(payload as AnyObject)")
+        print("AppDelegate + SendbirdVoIP: payload received: \(payload as AnyObject)")
         
         SendBirdCall.pushRegistry(registry, didReceiveIncomingPushWith: payload, for: type) { uuid in
             guard uuid != nil else {
 
-                print("pushRegistry: didReceiveIncomingPushWith payload. Sendbird has no uuid.")
+                print("AppDelegate + SendbirdVoIP: didReceiveIncomingPushWith payload. Sendbird has no uuid.")
                 
                 DispatchQueue.main.async {
                     let payload = [ "message": "no uuid returned when receiving push payload: \(payload.dictionaryPayload as AnyObject)"]
@@ -68,12 +75,8 @@ extension AppDelegate: PKPushRegistryDelegate {
                 return
             }
 
-            print("pushRegistry: didReceiveIncomingPushWith payload. Sendbird uuid: \(String(describing: uuid))")
+            print("AppDelegate + SendbirdVoIP: didReceiveIncomingPushWith payload. Sendbird uuid: \(String(describing: uuid))")
 
-//            DispatchQueue.main.async {
-//                let payload = [ "message": "registerVoIPPush paylaod: \(String(describing: payload as AnyObject))"]
-//                callsChannel?.invokeMethod("error", arguments: payload)
-//            }
             completion()
         }
     }

@@ -7,6 +7,7 @@ class SendbirdChannels {
     this.directCallEstablished,
     this.directCallEnded,
     this.onError,
+    this.onLog,
   });
 
   Function(String? callerId, String? callerNickname)? directCallReceived;
@@ -14,6 +15,7 @@ class SendbirdChannels {
   Function()? directCallEstablished;
   Function()? directCallConnected;
   Function(String message)? onError;
+  Function(String message)? onLog;
   var appId;
   var userId;
 
@@ -60,6 +62,10 @@ class SendbirdChannels {
         return new Future.value("");
       case "direct_call_ended":
         directCallEnded?.call();
+        return new Future.value("");
+      case "log":
+        final message = call.arguments['message'];
+        onLog?.call(message);
         return new Future.value("");
       case "error":
         final message = call.arguments['message'];

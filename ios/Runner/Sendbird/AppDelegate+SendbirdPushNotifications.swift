@@ -23,11 +23,16 @@ extension AppDelegate {
                    // Handle error while requesting permission for notifications.
                    
                    print("AppDelegate+SendbirdPushNotifications: enableSendbirdPushNotifications: ERROR: \(error as AnyObject)")
-
+                   DispatchQueue.main.async {
+                       let payload = [ "message": "enableSendbird Error: \(String(describing: error))"]
+                       callsChannel?.invokeMethod("error", arguments: payload)
+                   }
                 return;
                }
 
                // If the success is true, the permission is given and notifications will be delivered.
+               print("AppDelegate+SendbirdPushNotifications: authorization successful: \(success)")
+
            }
        }
     
@@ -36,30 +41,25 @@ extension AppDelegate {
         // Store token until user is connected with Sendbird
         remoteNotificationToken = deviceToken;
         
-        print("application: didRegisterForRemoteNotificationsWithDeviceToken: deviceToken: \(deviceToken as AnyObject)")
+        print("AppDelegate+SendbirdPushNotifications: didRegisterForRemoteNotificationsWithDeviceToken: deviceToken: \(deviceToken as AnyObject)")
 
     }
 
     override func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
-        print("application: didReceiveRemoteNotification: userInfo: \(userInfo as AnyObject)")
-
-//        DispatchQueue.main.async {
-//            let payload = [ "message": "didReceiveRemoteNotification userInfo: \(String(describing: userInfo as AnyObject))"]
-//            callsChannel?.invokeMethod("error", arguments: payload)
-//        }
+        print("AppDelegate+SendbirdPushNotifications: didReceiveRemoteNotification: userInfo: \(userInfo as AnyObject)")
         
         SendBirdCall.application(application, didReceiveRemoteNotification: userInfo)
     }
     
     override func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         
-        print("application: didFailToRegisterForRemoteNotifications: ERROR: \(error as AnyObject)")
+        print("AppDelegate+SendbirdPushNotifications: didFailToRegisterForRemoteNotifications: ERROR: \(error as AnyObject)")
 
-//        DispatchQueue.main.async {
-//            let payload = [ "message": error.localizedDescription]
-//            callsChannel?.invokeMethod("error", arguments: payload)
-//        }
+        DispatchQueue.main.async {
+            let payload = [ "message": error.localizedDescription]
+            callsChannel?.invokeMethod("error", arguments: payload)
+        }
     }
     
 }

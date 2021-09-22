@@ -28,6 +28,7 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
 
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             
+            print("AppDelegate+SendbirdDirectCalls: enableSendbirdChannels: method type received: \(call.method)")
             switch call.method {
                 case "init":
                     initSendbird(call: call) { (connected) -> () in
@@ -41,10 +42,12 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
                                     let payload = [ "message": "\(String(describing: error))"]
                                     callsChannel?.invokeMethod("error", arguments: payload)
                                 }
+                                result(false)
                                 return
                             }
 
                             // Handle registering the device token.
+                            result(true)
                         }
                     }
 
@@ -74,7 +77,8 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
                     directCall?.end()
                     result(true)
                     return
-                default: result(FlutterMethodNotImplemented)
+                default:
+                    result(FlutterMethodNotImplemented)
             }
         })
         
@@ -85,8 +89,8 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     
     // SendbirdCallDelegate
     func didStartRinging(_ call: DirectCall) {
-
-        print("AppDelegate+SendbirdCalls: didStartRinging: call: \(call as AnyObject)")
+        
+        print("AppDelegate+SendbirdDirectCalls: didStartRinging: call: \(call as AnyObject)")
 
         call.delegate = self
         directCall = call
@@ -107,7 +111,7 @@ extension AppDelegate: SendBirdCallDelegate, DirectCallDelegate {
     
     func didEstablish(_ call: DirectCall) {
         
-        print("AppDelegate+SendbirdCalls: didEstablis: call: \(call as AnyObject)")
+        print("AppDelegate+SendbirdDirectCalls: didEstablish: call: \(call as AnyObject)")
 
         // Inform Flutter layer
         DispatchQueue.main.async {
@@ -138,15 +142,27 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
     // Initialize Sendbird calls from Flutter
     
     guard let args = call.arguments as? Dictionary<String, Any> else {
+        DispatchQueue.main.async {
+            let payload = [ "message": "initSendbird: no args received"]
+            callsChannel?.invokeMethod("error", arguments: payload)
+        }
         return
     }
     
     guard let APP_ID = args["app_id"] as? String else {
+        DispatchQueue.main.async {
+            let payload = [ "message": "initSendbird: app_id missing from args"]
+            callsChannel?.invokeMethod("error", arguments: payload)
+        }
         completion(false)
         return
     }
     
     guard let userId = args["user_id"] as? String else {
+        DispatchQueue.main.async {
+            let payload = [ "message": "initSendbird: user_id missing from args"]
+            callsChannel?.invokeMethod("error", arguments: payload)
+        }
         completion(false)
         return
     }
@@ -162,14 +178,21 @@ func initSendbird(call: FlutterMethodCall, completion: @escaping (Bool) -> ()) {
         
         guard let user = user, error == nil else {
             // Handle error.
-            print("AppDelegate+SendbirdCalls: initSendbird: ERROR: \(error as AnyObject)")
-
+            print("AppDelegate+SendbirdDirectCalls: initSendbird: ERROR: \(error as AnyObject)")
+            DispatchQueue.main.async {
+                let payload = [ "message": "initSendbird: authentication Error: \(error as AnyObject))"]
+                callsChannel?.invokeMethod("error", arguments: payload)
+            }
             completion(false)
             return
         }
         
+        DispatchQueue.main.async {
+            let payload = [ "message": "initSendbird: authenticated user: \(user as AnyObject))"]
+            callsChannel?.invokeMethod("info", arguments: payload)
+        }
         completion(true)
-        print(user)
+//        print(user)
     }
 }
 
