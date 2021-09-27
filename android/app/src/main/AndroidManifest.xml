@@ -7,7 +7,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
    <application
-        android:label="sendbird_flutter_calls"
+       android:name=".sendbird.SendbirdApplication"
+       android:label="sendbird_flutter_calls"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
@@ -38,6 +39,14 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+       <!-- [Calls] FCM -->
+       <service
+           android:name=".sendbird.SendbirdFirebaseMessagingService"
+           android:exported="false">
+           <intent-filter>
+               <action android:name="com.google.firebase.MESSAGING_EVENT" />
+           </intent-filter>
+       </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

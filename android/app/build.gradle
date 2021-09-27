@@ -23,6 +23,7 @@ if (flutterVersionName == null) {
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.google.gms.google-services' // [Calls] FCM
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
@@ -57,4 +58,6 @@ flutter {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.sendbird.sdk:sendbird-calls:1.6.1'
+    implementation 'com.google.firebase:firebase-core:17.5.0' // [Calls] FCM
+    implementation 'com.google.firebase:firebase-messaging:20.1.0' // [Calls] FCM
 }
