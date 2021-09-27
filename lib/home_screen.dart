@@ -19,14 +19,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? callerNickname;
   SendbirdChannels? channels;
 
-  // final appId = "686F5D90-EFC5-45A7-BF75-2E87EC70B779";
-  // final userId = "koo";
-
   final appId = "D56438AE-B4DB-4DC9-B440-E032D7B35CEB";
   final userId = "tanika";
-
-  // "05F50EF2-A137-4701-BB80-36ED115C5F5B";
-  // "jasonkoo";
 
   @override
   void initState() {

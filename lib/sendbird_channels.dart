@@ -21,6 +21,7 @@ class SendbirdChannels {
 
   static const platform = MethodChannel('com.sendbird.calls/method');
 
+  // Trigger native code to initialize Sendbird Calls with given args
   Future<bool> initSendbird({
     required String appId,
     required String userId,
@@ -46,6 +47,7 @@ class SendbirdChannels {
     }
   }
 
+  // Handle incoming platform channel messages from native side
   Future<dynamic> _handleNativeMethods(MethodCall call) async {
     switch (call.method) {
       case "direct_call_received":
