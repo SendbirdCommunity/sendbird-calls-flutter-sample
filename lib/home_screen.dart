@@ -1,110 +1,161 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:async';
+import 'sendbird_channels.dart';
 
 class HomeScreen extends StatefulWidget {
-  final String appId;
-  final String userId;
-  final String? accessToken;
-
-  const HomeScreen({
-    Key? key,
-    required this.appId,
-    required this.userId,
-    this.accessToken,
-  }) : super(key: key);
-
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const platform = MethodChannel('com.sendbird.calls/method');
-  String statusString = "Initializing Sendbird...";
-  bool _areConnected = false;
+  final _calleeController = TextEditingController();
+
   bool _isCalleeAvailable = false;
+  bool _areCalling = false;
+  bool _areConnected = false;
   bool _isCallActive = false;
   bool _areReceivingCall = false;
-  final _calleeController = TextEditingController();
+
+  String? callerId;
+  String? callerNickname;
+  SendbirdChannels? channels;
+
+  final appId = "D56438AE-B4DB-4DC9-B440-E032D7B35CEB";
+  final userId = "tanika";
 
   @override
   void initState() {
-    // Inform native Sendbird calls sdks to init and connect
-    initSendbird().then((value) => setState(() {
-          _areConnected = value;
-          statusString =
-              "Sendbird status online: ${value.toString().toUpperCase()}";
-        }));
-
-    _calleeController.addListener(() {});
-
-    // Listen for incoming native events
-    platform.setMethodCallHandler(_handleNativeMethods);
+    channels = SendbirdChannels(directCallReceived: ((userId, nickname) {
+      setState(() {
+        callerId = userId;
+        callerNickname = nickname;
+        _areReceivingCall = true;
+      });
+    }), directCallConnected: () {
+      setState(() {
+        _areCalling = false;
+        _areReceivingCall = false;
+        _isCallActive = true;
+      });
+    }, directCallEnded: () {
+      setState(() {
+        _isCallActive = false;
+        _areCalling = false;
+        _areReceivingCall = false;
+        callerId = null;
+        callerNickname = null;
+      });
+    }, onError: ((message) {
+      print(
+          "home_screen.dart: initState: SendbirdChannels: onError: message: $message");
+    }), onLog: ((message) {
+      print(
+          "home_screen.dart: initState: SendbirdChannels onLog: message: $message");
+    }));
+    channels
+        ?.initSendbird(
+          appId: appId,
+          userId: userId,
+        )
+        .then((value) => setState(() {
+              _areConnected = value;
+            }));
 
     super.initState();
-  }
-
-  Future<dynamic> _handleNativeMethods(MethodCall call) async {
-    switch (call.method) {
-      case "direct_call_received":
-        setState(() {
-          _areReceivingCall = true;
-        });
-        return new Future.value("");
-        ;
-      case "direct_call_connected":
-        setState(() {
-          _areReceivingCall = false;
-          _isCallActive = true;
-        });
-        return new Future.value("");
-      case "direct_call_ended":
-        setState(() {
-          _areReceivingCall = false;
-          _isCallActive = false;
-        });
-        return new Future.value("");
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Center(child: Text('Sendbird Calls'))),
-      body: Column(children: [
-        statusField(),
-        _areConnected ? calleeIdField(_calleeController) : Container(),
-        dynamicButton(),
+      body: Container(
+        padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+        child: Column(children: [
+          Row(children: [
+            SizedBox(width: 240, child: Text("Connection status for $userId:")),
+            Expanded(child: statusField()),
+          ]),
+          Container(height: 20),
+          // statusField(),
+          Row(children: [
+            SizedBox(width: 80, child: Text("Calling")),
+            Container(width: 10),
+            SizedBox(width: 150, child: calleeIdField(_calleeController)),
+            Container(width: 10),
+            Expanded(
+                child: _isCalleeAvailable
+                    ? _areConnected && !_isCallActive && !_areCalling
+                        ? callButton(_calleeController)
+                        : Container()
+                    : Container()),
+          ]),
+          Container(height: 20),
+          Row(children: [
+            SizedBox(width: 80, child: Text('Receiving')),
+            Container(width: 10),
+            SizedBox(
+              width: 150,
+              child: callerNickname != null
+                  ? Text('$callerNickname')
+                  : callerId != null
+                      ? Text("$callerId")
+                      : Text("<No incoming calls>"),
+            ),
+            Expanded(
+                child: _areReceivingCall ? receivingCallButton() : Container()),
+            Container(height: 20),
+          ]),
+          Container(height: 10),
+          _isCallActive || _areCalling ? hangupButton() : Container(),
+        ]),
+      ),
+    );
+  }
+
+  Widget dialRow() {
+    return Expanded(
+      child: Row(children: [
+        Text("Dial"),
+        Container(width: 10),
+        calleeIdField(_calleeController),
+        Container(width: 10),
+        _isCallActive ? hangupButton() : callButton(_calleeController)
       ]),
     );
   }
 
-  Future<bool> initSendbird() async {
-    try {
-      final bool result = await platform.invokeMethod(
-        "init",
-        {
-          "app_id": widget.appId,
-          "user_id": widget.userId,
-          "access_token": widget.accessToken,
-        },
-      );
-      return result;
-    } catch (e) {
-      throw e;
-    }
+  Widget receiveRow() {
+    return Expanded(
+      child: Row(children: [
+        Text('Receiving calls'),
+        Container(width: 10),
+        callerNickname != null
+            ? Text('$callerNickname')
+            : callerId != null
+                ? Text("$callerId")
+                : Container(),
+        _areReceivingCall ? receivingCallButton() : Container(),
+        callerId != null && _isCallActive ? hangupButton() : Container(),
+      ]),
+    );
   }
 
   Widget statusField() {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
-      child: Text('$statusString'),
-    );
+        child: _areConnected
+            ? Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 40.0,
+              )
+            : Icon(
+                Icons.remove_circle_outline,
+                color: Colors.red,
+                size: 40.0,
+              ));
   }
 
   Widget calleeIdField(TextEditingController calleeController) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: TextField(
         controller: calleeController,
         onChanged: (text) {
@@ -117,30 +168,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget dynamicButton() {
-    if (_areReceivingCall) {
-      return receivingCallButton(_calleeController);
-    }
-    if (_areConnected && _isCalleeAvailable && _isCallActive) {
-      return hangupButton();
-    }
-    if (_areConnected && _isCalleeAvailable && !_isCallActive) {
-      return callButton(_calleeController);
-    }
-    return Container();
-  }
-
   Widget callButton(TextEditingController controller) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
       child: ElevatedButton(
-        onPressed: () {
-          startCall(controller.text);
+        onPressed: () async {
+          channels?.startCall(controller.text);
+          setState(() {
+            _areCalling = true;
+          });
         },
-        child: Icon(Icons.call, color: Colors.white),
+        child: Icon(
+          Icons.call,
+          color: Colors.white,
+          size: 20.0,
+        ),
         style: ElevatedButton.styleFrom(
           shape: CircleBorder(),
-          padding: EdgeInsets.all(20),
           primary: Colors.green, // <-- Button color
           onPrimary: Colors.green, // <-- Splash color
         ),
@@ -148,17 +191,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget receivingCallButton(TextEditingController controller) {
+  Widget receivingCallButton() {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
       child: ElevatedButton(
         onPressed: () {
-          startCall(controller.text);
+          channels?.pickupCall();
         },
-        child: Icon(Icons.call, color: Colors.blue),
+        child: Icon(
+          Icons.call,
+          color: Colors.blue,
+          size: 20.0,
+        ),
         style: ElevatedButton.styleFrom(
           shape: CircleBorder(),
-          padding: EdgeInsets.all(20),
           primary: Colors.white, // <-- Button color
           onPrimary: Colors.white, // <-- Splash color
         ),
@@ -168,54 +213,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget hangupButton() {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20),
+      padding: EdgeInsets.all(20),
       child: ElevatedButton(
         onPressed: () {
-          endCall();
+          channels?.endCall();
         },
-        child: Icon(Icons.call_end, color: Colors.white),
+        child: Icon(
+          Icons.call_end,
+          color: Colors.white,
+        ),
         style: ElevatedButton.styleFrom(
-          shape: CircleBorder(),
           padding: EdgeInsets.all(20),
+          shape: CircleBorder(),
           primary: Colors.red, // <-- Button color
           onPrimary: Colors.red, // <-- Splash color
         ),
       ),
     );
-  }
-
-  Future<bool> startCall(String calleeId) async {
-    try {
-      final bool result = await platform.invokeMethod("start_direct_call", {
-        "callee_id": calleeId,
-      });
-      setState(() {
-        _isCallActive = true;
-      });
-      return result;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  Future<bool> pickupCall() async {
-    try {
-      final bool result = await platform.invokeMethod("answer_direct_call", {});
-      return result;
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  Future<bool> endCall() async {
-    try {
-      final bool result = await platform.invokeMethod("end_direct_call", {});
-      setState(() {
-        _isCallActive = false;
-      });
-      return result;
-    } catch (e) {
-      throw e;
-    }
   }
 }

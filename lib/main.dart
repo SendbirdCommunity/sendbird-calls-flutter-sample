@@ -14,11 +14,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(
-        appId: "YOUR_APP_ID",
-        userId: "A_USER_ID",
-        accessToken: null,
-      ),
+      home: HomeScreen(),
     );
   }
 }
