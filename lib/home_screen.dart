@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   SendbirdChannels? channels;
 
   final appId = "D56438AE-B4DB-4DC9-B440-E032D7B35CEB";
-  final userId = "thanos";
+  final userId = "thor";
 
   @override
   void initState() {

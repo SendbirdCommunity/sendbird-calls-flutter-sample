@@ -1,19 +1,23 @@
 package com.example.sendbird_flutter_calls.sendbird
 
 import android.content.Context
+import android.util.Log
 import com.sendbird.calls.*
-import com.sendbird.calls.handler.*
+import com.sendbird.calls.handler.AuthenticateHandler
+import com.sendbird.calls.handler.CompletionHandler
+import com.sendbird.calls.handler.DialHandler
+import com.sendbird.calls.handler.DirectCallListener
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
-import java.util.*
 
 class SendbirdPlatformChannels {
 
-    companion object {
-        private const val METHOD_CHANNEL_NAME = "com.sendbird.calls/method"
-        private const val ERROR_CODE = "Sendbird Calls"
+        private val TAG = "SendbirdPlatformChannel"
+        private val METHOD_CHANNEL_NAME = "com.sendbird.calls/method"
+        private val ERROR_CODE = "Sendbird Calls"
         private var methodChannel: MethodChannel? = null
         private var directCall: DirectCall? = null
+        private var sendbirdCommands = SendbirdCommands()
 
         fun setupChannels(context: Context, messenger: BinaryMessenger) {
             methodChannel = MethodChannel(messenger, METHOD_CHANNEL_NAME)
@@ -30,11 +34,15 @@ class SendbirdPlatformChannels {
                                 result.error(ERROR_CODE, "Failed Init", "Missing user_id")
                             }
                             else -> {
-                                initSendbird(context, appId!!, userId!!) { successful ->
-                                    if (!successful) {
-                                        result.error(ERROR_CODE, "Failed init", "Problem initializing Sendbird. Check for valid app_id")
-                                    } else {
-                                        result.success(true)
+                                sendbirdCommands.initSendBirdCall(context, appId!!, methodChannel!!
+                                ) {
+                                    // Successfully connected with Sendbird
+                                    authenticate(context, userId) { success ->
+                                        if (!success){
+                                            Log.i(TAG, "Failed to authenticate user, check userId.")
+                                        }
+                                        // Successfully authenticated userId with Sendbird
+                                        result.success(success)
                                     }
                                 }
                             }
@@ -77,67 +85,46 @@ class SendbirdPlatformChannels {
             }
         }
 
-        private fun initSendbird(context: Context, appId: String, userId: String, callback: (Boolean)->Unit){
-            // Initialize SendBirdCall instance to use APIs in your app.
-            if(SendBirdCall.init(context, appId)){
-                // Initialization successful
+        fun disposeChannels(){
+            methodChannel!!.setMethodCallHandler(null)
+        }
 
-                SendBirdCall.registerPushToken("AAAAlZmkNq8:APA91bGDF2KKMjGaUBn1785XHTpXP5fequWw9QQNRurQY3QNmpTE2uOiqQvKuB9anPXD9EAB6mL3Anj3oUBww6pE_cQiXTW5ZEyLo3LuicCZTpslqLNSgh9lzr_Ka_EEjGpXf5yVgvlw", true, object :
-                    CompletionHandler {
-                    override fun onResult(e: SendBirdException?) {
-                        if (e == null) {
-                            // The push token is registered successfully.
-                        }
-                    }
-                })
+        fun authenticate(context: Context, userId: String, callback: (Boolean)->Unit) {
 
-                // Add event listeners
-                SendBirdCall.addListener(UUID.randomUUID().toString(), object: SendBirdCallListener() {
-                    override fun onRinging(call: DirectCall) {
-
-                        // Assign so we we can accept or decline from Flutter side
-                        directCall = call
-
-                        // Let Flutter side know we're receiving a call
-                        methodChannel?.invokeMethod("direct_call_received"){
-                        }
-
-                        val ongoingCallCount = SendBirdCall.ongoingCallCount
-                        if (ongoingCallCount >= 2) {
-                            call.end()
-                            return
-                        }
-
-                        call.setListener(object : DirectCallListener() {
-                            override fun onEstablished(call: DirectCall) {}
-
-                            override fun onConnected(call: DirectCall) {
-                                methodChannel?.invokeMethod("direct_call_connected"){
-                                }
-                            }
-
-                            override fun onEnded(call: DirectCall) {
-                                val ongoingCallCount = SendBirdCall.ongoingCallCount
-                                if (ongoingCallCount == 0) {
-//                                CallService.stopService(context)
-                                }
-                                methodChannel?.invokeMethod("direct_call_ended"){
-                                }
-                            }
-                            override fun onRemoteAudioSettingsChanged(call: DirectCall) {}
-
-                        })
-                    }
-                })
+            if (SendBirdCall.currentUser != null){
+                // Already authenticated
+                Log.i(TAG, "authenticate: already authenticated")
+                callback(true)
+                return
             }
 
-            // The USER_ID below should be unique to your Sendbird application.
             var params = AuthenticateParams(userId)
-
             SendBirdCall.authenticate(params, object : AuthenticateHandler {
                 override fun onResult(user: User?, e: SendBirdException?) {
                     if (e == null) {
                         // The user has been authenticated successfully and is connected to Sendbird server.
+
+                        // Register push token (if available) with Sendbird now that user is authenticated
+                        val token = SendbirdPushUtils.Companion.getPushToken(context)
+                        if (token != null) {
+                            SendBirdCall.registerPushToken(
+                                token,
+                                false,
+                                object : CompletionHandler {
+                                    override fun onResult(e: SendBirdException?) {
+                                        if (e != null) {
+                                            Log.i(TAG,"registerPushToken() => e: " + e.message)
+                                            SendbirdPushUtils.setPushToken(context, token)
+                                            return
+                                        }
+
+                                        Log.i(TAG,"registerPushToken() => OK")
+                                        SendbirdPushUtils.setPushToken(context, token)
+                                    }
+                                })
+                        } else {
+                            Log.i(TAG, "");
+                        }
                         callback(true)
                     } else {
                         callback(false)
@@ -145,9 +132,4 @@ class SendbirdPlatformChannels {
                 }
             })
         }
-
-        fun disposeChannels(){
-            methodChannel!!.setMethodCallHandler(null)
-        }
-    }
 }
