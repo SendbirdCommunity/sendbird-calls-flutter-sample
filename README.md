@@ -7,6 +7,12 @@ This sample app demonstrates how to integrate Sendbird's Calls SDK with a Flutte
 
 <br />
 
+<p align="center">
+<img src="repo_assets/flutter_calls_sample.gif">
+</p>
+
+<br />
+
 ## Requirements
 Dependencies for both Android and iOS implementation must be added per instructions for each platform instead of via pubspec.yaml dependency entires:
 - [Android instructions](https://sendbird.com/docs/calls/v1/android/getting-started/install-calls-sdk?&utm_source=github&utm_medium=referral&utm_campaign=repo&utm_content=sendbird-calls-flutter-sample)
